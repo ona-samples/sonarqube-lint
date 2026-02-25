@@ -1,0 +1,78 @@
+action:
+  limits:
+    maxParallel: 1
+    maxTotal: 10
+  steps:
+    - agent:
+        prompt: |
+          You have access to SonarQube tools via MCP. Use them to query the project
+          "ona-samples_sonarcube-integration" for open issues with BLOCKER or HIGH severity.
+
+          Pick the single highest-severity issue (BLOCKER > HIGH). If there are ties,
+          pick the one in production code (src/main) over test code (src/test).
+
+          For the selected issue:
+          1. Read the SonarQube rule details to understand what the rule requires.
+          2. Read the affected source file and surrounding context.
+          3. Note the rule key, severity, file path, line number, and the rule's message.
+
+          Do NOT make any code changes yet.
+    - agent:
+        prompt: |
+          Using the issue identified in the previous step:
+
+          1. Create a new git branch named "sonar-fix/<rule-key>" (e.g. sonar-fix/java-S2699).
+          2. Apply the minimal fix that resolves the SonarQube issue while preserving
+              existing behavior. Follow the project's code style and conventions.
+          3. Commit the fix with message: "Fix SonarQube <rule-key>: <short description>"
+              Add co-author: "Co-authored-by: Ona <no-reply@ona.com>"
+
+          Do NOT run tests yet.
+    - agent:
+        prompt: |
+          Verify the fix from the previous step:
+
+          1. Run `./mvnw compile test` to compile and run all tests.
+          2. If compilation or tests fail:
+              a. Read the error output carefully.
+              b. Identify whether the failure is caused by the fix or a pre-existing issue.
+              c. If caused by the fix, adjust the code and amend the commit.
+              d. Rerun `./mvnw compile test`.
+              e. Repeat until all tests pass.
+          3. Once tests pass, confirm the fix is complete.
+    - pullRequest:
+        branch: sonar-fix/<issue>
+        title: 'Sonar-Fix: <title>'
+        description: |
+          ## SonarQube Issue
+
+          | Field | Value |
+          |-------|-------|
+          | **Rule** | `<rule-key>` — [View rule](https://rules.sonarsource.com/java/RSPEC-<rule-number>) |
+          | **Severity** | <severity> |
+          | **Type** | <clean-code-attribute-category> |
+          | **Message** | <sonar-message> |
+
+          ## Affected Code
+
+          | Field | Value |
+          |-------|-------|
+          | **File** | `<file-path>` |
+          | **Line** | <line-number> |
+
+          ## What changed
+
+          <one-or-two-sentence explanation of the fix and why it resolves the issue>
+
+          ## Verification
+
+          - [x] `./mvnw compile test` passes
+          - [x] Fix is minimal and preserves existing behavior
+description: >-
+  Picks the highest-severity open SonarQube issue, applies a fix,
+  verifies tests pass, and opens a pull request.
+name: fix-sonar-issue
+triggers:
+  - context:
+      projects: {}
+    manual: {}
