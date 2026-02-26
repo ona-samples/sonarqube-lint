@@ -58,17 +58,11 @@ action:
 
           | Field | Value |
           |-------|-------|
+          | **Issue** | [View in SonarQube Cloud](https://sonarcloud.io/project/issues?id=ona-samples_sonarcube-integration&issues=<issue-key>&open=<issue-key>) |
           | **Rule** | `<rule-key>` — [View rule](https://rules.sonarsource.com/java/RSPEC-<rule-number>) |
           | **Severity** | <severity> |
           | **Type** | <clean-code-attribute-category> |
           | **Message** | <sonar-message> |
-
-          ## Affected Code
-
-          | Field | Value |
-          |-------|-------|
-          | **File** | `<file-path>` |
-          | **Line** | <line-number> |
 
           ## What changed
 
